@@ -1,0 +1,3 @@
+#a bezeichnet den Koeffizient des Orientierungsterm in der reward function. Mit niedrigem a wird eine schlechte Orientierung weniger bestraft
+#knots - KNN struktur wurde von 256 auf 512 Knoten / Hidden Layer erhöht
+#d - Abstand zum Erreichen des Ziels = 0.02
