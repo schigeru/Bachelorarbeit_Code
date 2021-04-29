@@ -1,3 +1,7 @@
+'''"Simuliert" Panda rein in Python ohne Self-Collision. Kann genutzt werden um Approximative RL Models zu trainieren, v.a. wenn SelfCollision nicht relevant ist'''
+
+
+
 import numpy as np
 from math import cos, sin, pi
 import time
@@ -51,6 +55,8 @@ class PandaRobotGymEnv(gym.Env):
         self.joint_state = np.array([self.joint1, self.joint2, self.joint3, self.joint4,
                                     self.joint5, self.joint6, self.joint7])
 
+
+    '''Hilffsfunktion zur Berechnung der Transformationsmatrix für Forward Kinematics'''
     def get_t_n(self, sin_theta, cos_theta, n):
         a = self.a_vec[n]
         d = self.d_vec[n]
@@ -65,6 +71,7 @@ class PandaRobotGymEnv(gym.Env):
 
         return t_n
 
+    '''Berechnet Transformationsmatrix zur Berechnung der Forward Kinematics'''
     def get_trans_matrix(self):
         theta_vec = self.joint_state
         theta_vec = np.append(theta_vec, [0, -pi / 4, 0, 0])
@@ -77,6 +84,7 @@ class PandaRobotGymEnv(gym.Env):
 
         return trans_matrix
 
+        '''Berechnet die Abweichung zur Zielorientierung in Quaternions'''
     def calc_quaternion_norm(self, quat):
 
         if quat[0] < 0:
@@ -86,6 +94,7 @@ class PandaRobotGymEnv(gym.Env):
 
         return quat_reward
 
+    '''Resetet Environment'''
     def reset(self):
         goalx = 0.5
         goaly = 0
@@ -104,12 +113,13 @@ class PandaRobotGymEnv(gym.Env):
 
         self.set_joint_state()
         trans_matrix = self.get_trans_matrix()
-        hand_pos = trans_matrix[0:3, 3]
+        hand_pos = trans_matrix[0:3, 3] #Oberen 3 Werte der letzten Spalte Transmatrix geben x,y,z Pos an
         vector_dist = self.goal - hand_pos
         obs = self.joint_state
         obs = np.append(obs, vector_dist)
         return np.array(obs)
-
+    
+'''Step Function des Environment - Veränderung der Joints um Bruchteil der Aktion, da der Lerneffekt dadurch besser war'''
     def step(self, action):
         self.done = False
         self.joint1 = self.joint1 + action[0] / 20
@@ -122,9 +132,9 @@ class PandaRobotGymEnv(gym.Env):
 
         trans_matrix = self.get_trans_matrix()
         hand_pos = trans_matrix[0:3, 3]
-        z = hand_pos[2] - self.goal[2]
+        z = hand_pos[2] - self.goal[2] #Distanz in z-Richtung
         goal_dist = np.linalg.norm(self.goal - hand_pos)
-        vector_dist = self.goal - hand_pos
+        vector_dist = self.goal - hand_pos #Abstand je Achse
         obs = self.joint_state
         obs = np.append(obs, vector_dist)
 
